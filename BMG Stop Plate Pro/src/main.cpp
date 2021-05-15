@@ -14,15 +14,17 @@ void sendMessage() ; // Prototype so PlatformIO doesn't complain
 Task taskSendMessage( TASK_SECOND * 1 , TASK_FOREVER, &sendMessage );
 
 void sendMessage() {
-  String msg = "Sender Time: " + String(mesh.getNodeTime());
-  // msg += mesh.getNodeId();
+  String msg = String(mesh.getNodeTime());
   mesh.sendBroadcast( msg );
-  taskSendMessage.setInterval( random( TASK_SECOND * 1, TASK_SECOND * 5 ));
+  taskSendMessage.setInterval(TASK_SECOND * 1);
 }
 
 // Needed for painless library
 void receivedCallback( uint32_t from, String &msg ) {
-  Serial.printf("startHere: Received from %u | %s | Receiver Time: %d\n", from, msg.c_str(), mesh.getNodeTime());
+  uint32_t senderTime = static_cast<uint32_t>(strtoul(msg.c_str(), NULL, 0));
+  uint32_t receiverTime = mesh.getNodeTime();
+  uint32_t differenceTime = receiverTime - senderTime;
+  Serial.printf("startHere: Received from %u | Sender Time: %d μs | Receiver Time: %d μs | Difference Time: %d μs\n", from, senderTime, receiverTime, differenceTime);
 }
 
 void newConnectionCallback(uint32_t nodeId) {
